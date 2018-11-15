@@ -1,4 +1,6 @@
 # MAIN FILE containing only calls to functions
-from .Stachu import *
+from Stachu import get_params
+from Mati import read_files
 
-# get_params(data)
+matrix = read_files()
+print(matrix)
