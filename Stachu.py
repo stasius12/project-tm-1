@@ -2,7 +2,8 @@ from python_speech_features import mfcc
 from collections import defaultdict
 import numpy as np
 import sklearn.mixture as skm
-from matplotlib import pyplot as plt
+
+
 
 sample_data = [('A01M1_0_', [1,2,3,4], 48),
         ('A01M1_1_', [1, 2, 3, 4,5,6], 48),
