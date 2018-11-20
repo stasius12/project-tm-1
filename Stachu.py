@@ -1,6 +1,5 @@
 from python_speech_features import mfcc
 from collections import defaultdict
-from os import listdir
 
 sample_data = [('A01M1_0_', [1,2,3,4], 48),
         ('A01M1_1_', [1, 2, 3, 4,5,6], 48),
