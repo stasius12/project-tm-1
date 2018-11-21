@@ -43,10 +43,10 @@ def show_model_and_data(mfcc_atributes, gmm_models, label, attribute_num, xlim):
 
     fig = plt.figure()
     subplot = fig.add_subplot(111)
-    title = 'Liczba: %s, Cecha: C%s' %(label, attribute_num)
+    title = 'Liczba: %s, Cecha: C%s' % (label, attribute_num)
     subplot.set_title(title)
-    subplot.set_xlabel('wartość atrybutu [-]')
-    subplot.set_ylabel('prawdopodobieństwo wystąpienia [-]')
+    subplot.set_xlabel('wartosc atrybutu [-]')
+    subplot.set_ylabel('prawdopodobienstwo wystapienia [-]')
 
     bins = np.linspace(xlim[0], xlim[1], 100)
     x = np.linspace(xlim[0], xlim[1], 1000)
@@ -67,7 +67,6 @@ def show_model_and_data(mfcc_atributes, gmm_models, label, attribute_num, xlim):
         subplot.plot(x, dist)
     subplot.plot(x, dist_sum)
     plt.show()
-
 
 def gaussian(x, mu, sig):
     factor = 1
