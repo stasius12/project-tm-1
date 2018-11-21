@@ -3,6 +3,7 @@ import os
 import os.path
 
 
+
 def read_files():
     matrix_of_names = os.listdir('waves')
     matrix_of_param = []
