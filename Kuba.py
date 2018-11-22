@@ -1,12 +1,34 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sklearn.mixture as skm
+from Stachu import classificate_mfcc_to_GMM_model
 
+def validate(training_set, test_set, n_components, n_iter):
+    words_count = 10
+    confusion_matrix = np.zeros((words_count, words_count))
+    labels_dict = get_labels_dictionary(training_set)
+    gmm_models = get_gmm_models(labels_dict,  n_components, n_iter)
+    for speaker in test_set:
+        speaker_data = test_set[speaker]
+        for label_data in speaker_data:
+            curr_mfcc = label_data[0]
+            curr_label = label_data[1]
+            classif_idx = classificate_mfcc_to_GMM_model(curr_mfcc, gmm_models)
+            confusion_matrix[classif_idx, int(curr_label)] += 1
+    return confusion_matrix
+
+def calc_recogn_ratio(confusion_matrix):
+    total = np.sum(confusion_matrix)
+    true_positives = 0
+    n = confusion_matrix.shape[0]
+    for i in range(0, n):
+        true_positives += confusion_matrix[i, i]
+    return true_positives/total
 
 def get_gmm_models(labels_dictionary, n, n_iter):
     gmm_models = {}
     for curr_label in labels_dictionary:
-        gmm_obj = skm.GaussianMixture(n_components=n, covariance_type='diag', init_params='random', max_iter=n_iter, n_init=20, tol=0.001)
+        gmm_obj = skm.GaussianMixture(n_components=n, covariance_type='diag', init_params='random', max_iter=n_iter, n_init=20, tol=0.001, warm_start=True)
         gmm_obj.fit(labels_dictionary[curr_label])
         gmm_models[curr_label] = gmm_obj
     return gmm_models
@@ -71,3 +93,4 @@ def show_model_and_data(mfcc_atributes, gmm_models, label, attribute_num, xlim):
 def gaussian(x, mu, sig):
     factor = 1
     return factor * np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+
