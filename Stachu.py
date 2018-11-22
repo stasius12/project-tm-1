@@ -30,6 +30,15 @@ def get_test_data(n_test_examples):
     test_gmm = test_gmm.fit(test_mfcc)
     return test_mfcc, test_gmm
 
+
+def classificate_mfcc_to_GMM_model(mfcc_matrix, gmm_models):
+    log_likelihoods = [] 
+    for number, model in sorted(gmm_models.items(), key=lambda x: int(x[0])):
+        log_likelihoods.append(np.exp(model.score(mfcc_matrix)))
+    return log_likelihoods.index(max(log_likelihoods)) 
+
+
+
     # ones_ = [x for x in params_dictionary.values()]
     # labels_ = set(y[1] for x in params_dictionary.values() for y in x)
     # return {k: np.concatenate((np.array([x[0] for x in chain(*ones_) if x[1] == k])),0) for k in labels_}
