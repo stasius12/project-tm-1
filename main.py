@@ -1,7 +1,7 @@
 # MAIN FILE containing only calls to functions
 from Stachu import get_params, get_test_data, classificate_mfcc_to_GMM_model
 from Mati import read_files
-from Kuba import get_labels_dictionary, get_gmm_models,show_model_and_data
+from Kuba import get_labels_dictionary, get_gmm_models, show_model_and_data, validate, calc_recogn_ratio
 
 TEST = False # set to True if you want to test it
 
@@ -33,9 +33,15 @@ gmm_models = get_gmm_models(labels_dict, 20, 200)
 2. Funkcja przyjmujaca jedna pare trening/test do crosswalidacji
     a)f labels_dict dla modelu treningowego -> gmm_models
     b)testowy_zbior = wyciagnac z get_params testowych mowcow
-    c)Iteracja po mowcy z testowy_zbior
-        1. Dla kazdej liczby:
-            a) wektor bledu -> zwraca numer cyfry
+    c)conf_matrix = inicjalizacja pustej confusion matrix
+    d)Iteracja po mowcy z testowy_zbior
+        d1) iteracja po cyfrach(labelach)
+            - inicjalizacja pustej tablicy prawdopodobienstwa classif_prop = []
+            d2) iteracja po modelach
+                - obliczenie prawdopodbienstwa classyfikacji prop
+                - classif_prop.append(prop)
+            e) max_idx = znajdz index maksymalnej wartości z clasif_prop
+            f) conf_matrix[label_idx, max_idx] += 1
 }     
 """
 
@@ -49,5 +55,13 @@ if TEST:
     show_model_and_data(labels_dict, gmm_models, 'test', which_test, [which_test*50-2, which_test*50+2])
 else:
    # show_model_and_data(labels_dict, gmm_models, '9', 0, [-100, 100])
-    for i in [str(i) for i in range(10)]:
-        print('Number %s classificate as: %s' % (i, classificate_mfcc_to_GMM_model(labels_dict[i], gmm_models)))
+   #  for i in [str(i) for i in range(10)]:
+   #      print('Number %s classificate as: %s' % (i, classificate_mfcc_to_GMM_model(labels_dict[i], gmm_models)))
+    key_list = list(params_dict.keys())
+    train_keys = key_list[0:17]
+    test_keys = key_list[17:23]
+    train_set_params = dict((k, params_dict[k]) for k in train_keys if k in params_dict)
+    test_set_params = dict((k, params_dict[k]) for k in test_keys if k in params_dict)
+    conf_matrix = validate(train_set_params, test_set_params, 8, 200)
+    print(conf_matrix)
+    print("Recgnition ratio: ", calc_recogn_ratio(conf_matrix))
