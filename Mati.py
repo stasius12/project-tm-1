@@ -1,6 +1,7 @@
 from scipy.io import wavfile
 import os
 import os.path
+import itertools
 
 
 def read_files():
