@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sklearn.mixture as skm
-from Stachu import classificate_mfcc_to_GMM_model
+from Stachu import classificate_mfcc_to_GMM_model, calc_recogn_ratio
 
 
 def validate(training_set, test_set, n_components, n_iter):
@@ -18,14 +18,10 @@ def validate(training_set, test_set, n_components, n_iter):
     return confusion_matrix
 
 
-def calc_recogn_ratio(confusion_matrix):
-    return np.sum(confusion_matrix.diagonal()) / np.sum(confusion_matrix)
-
-
 def get_gmm_models(labels_dictionary, n, n_iter):
     gmm_models = {}
     for curr_label in labels_dictionary:
-        gmm_obj = skm.GaussianMixture(n_components=n, covariance_type='diag', init_params='random', max_iter=n_iter, n_init=20, tol=0.001, warm_start=True)
+        gmm_obj = skm.GaussianMixture(n_components=n, covariance_type='diag', init_params='random', max_iter=n_iter, n_init=20, tol=0.001, warm_start=True, random_state=4)
         gmm_obj.fit(labels_dictionary[curr_label])
         gmm_models[curr_label] = gmm_obj
     return gmm_models
