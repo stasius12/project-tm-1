@@ -1,9 +1,9 @@
-from python_speech_features import mfcc
-from collections import defaultdict
+from python_speech_features import mfcc, delta
+from collections import defaultdict, Counter
 import numpy as np
 import sklearn.mixture as skm
 from matplotlib import pyplot as plt
-from itertools import product
+from itertools import product, count
 import csv
 
 
@@ -13,7 +13,8 @@ def get_params(data):
         filename = el[0].split('_')[0]
         number = el[0].split('_')[1]
         assert(len(filename) == 5 and len(number) == 1)
-        mfcc_ = mfcc(el[1], samplerate=el[2], appendEnergy=True) # add paremeters
+        mfcc_ = mfcc(el[1], samplerate=el[2], appendEnergy=True)  # add paremeters
+        mfcc_ = delta(mfcc_, 5)
         ret[filename].append((mfcc_, number))
     return ret
 
@@ -34,15 +35,40 @@ def classificate_mfcc_to_GMM_model(mfcc_matrix, gmm_models):
     return log_likelihoods.index(max(log_likelihoods))
 
 
-def divide_test(params_dict):
+def divide_test(params_dict, n_of_tests_ex=2):
     # change this function to return correct values as it is now
     key_list = list(params_dict.keys())
-    from sklearn.model_selection import KFold
-    x = [i for i in range(len(key_list))]
-    kf = KFold(11)
-    divided = [(list(map(lambda z: key_list[z], i)), list(map(lambda z: key_list[z], j))) for i, j in kf.split(x)]
-    train_keys = [a[0] for a in divided]
-    test_keys = [a[1] for a in divided]
+    print(key_list)
+    if n_of_tests_ex == 2:
+        from sklearn.model_selection import KFold
+        x = [i for i in range(len(key_list))]
+        kf = KFold(11)
+        rt = [(list(map(lambda z: key_list[z], i)), list(map(lambda z: key_list[z], j))) for i, j in kf.split(x)]
+
+    else:
+        from sklearn.model_selection import train_test_split
+        rt = []
+        counter = Counter()
+        for i in count(1):
+            if len(rt) >= len(key_list):
+                break
+            split_ = train_test_split(key_list, test_size=n_of_tests_ex)
+            if not any([1 for i in rt if len(set(split_[1]) - set(i[1])) < n_of_tests_ex - 1]):
+                counter += Counter(split_[1])
+                diff = max(counter.values()) - min(counter.values())
+                if not any(filter(lambda z: z > n_of_tests_ex, counter.values())) and (diff < 2 or (diff < 3 and min(counter.values()) == 0)):
+                    rt.append(split_)
+                else:
+                    counter -= Counter(split_[1])
+            if len(rt) == len(key_list) - 1:  # if only one set of values is required, then fill it in appropriately
+                pom = [z[0] for z in counter.items() if z[1] == n_of_tests_ex - 1]
+                rt.append([list(set(key_list) - set(pom)), pom])
+                counter += Counter(pom)
+
+        print(counter)
+
+    train_keys = [a[0] for a in rt]
+    test_keys = [a[1] for a in rt]
     return train_keys, test_keys
 
 
@@ -50,12 +76,15 @@ def plot_conf_matrix(matrix, percentage_vals=True):
     fig, axs = plt.subplots()
     plt.imshow(matrix, cmap='coolwarm')
     plt.colorbar()
+    sum_ = np.sum(matrix)/10
     # for i, j in filter(lambda x: x[0] == x[1], product(range(10), range(10))):
     for i, j in product(range(10), range(10)):
         if not matrix[j, i] == 0:
-            result = "%s" % int((matrix[j, i] / 22) * 100) + "%" if percentage_vals else int(matrix[j, i])
+            result = int((matrix[j, i] / sum_) * 100) if percentage_vals else int(matrix[j, i])
             fontsize_ = 12 if i ==j else 9
-            plt.text(i, j, result, horizontalalignment="center", fontname='serif', fontsize=fontsize_, fontweight=700)
+            if not result == 0:
+                result = "%s" % result + "%" if percentage_vals else result
+                plt.text(i, j, result, horizontalalignment="center", fontname='serif', fontsize=fontsize_, fontweight=700)
     ticks = list(range(10))
     plt.xticks(ticks)
     plt.yticks(ticks)
