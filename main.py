@@ -1,7 +1,8 @@
 # MAIN FILE containing only calls to functions
-from Stachu import get_params, get_test_data, divide_test, plot_conf_matrix, calc_recogn_ratio, write_to_csv
+from Stachu import get_params, get_test_data, divide_test, plot_conf_matrix, calc_recogn_ratio, write_to_csv, get_mfcc, classificate_mfcc_to_GMM_model
 from Mati import read_files, divide_data_set_to_cross_validate
 from Kuba import get_labels_dictionary, get_gmm_models, show_model_and_data, validate
+from useful_funcs import evaluate, load_results, load_keys
 import numpy as np
 from itertools import zip_longest
 import csv
@@ -14,6 +15,8 @@ def cross_validation(n_components, n_iters, n_of_tests_ex=2):
     for i in range(len(test_keys)):
         train_set_params = dict((k, params_dict[k]) for k in train_keys[i])
         test_set_params = dict((k, params_dict[k]) for k in test_keys[i])
+        print(train_set_params.keys())
+        print(test_set_params.keys())
         conf_matrix = validate(train_set_params, test_set_params, n_components, n_iters)
         print(conf_matrix)
         print("Recognition Ratio for test %s: " % i, calc_recogn_ratio(conf_matrix))
@@ -36,10 +39,25 @@ def test_optimal_number_of_components():
     write_to_csv(diagonals, 'test_n_components.csv')
 
 
+def score_evaluate_waves():
+    # GMM MODELS
+    gmm_models_ = get_gmm_models(get_labels_dictionary(get_params(read_files())), 8, 40)
+
+    # EVALUATION SET
+    file_list_ = sorted(read_files('eval'), key=lambda x: x[0])
+    # file_list_ = dict([(k[0], (k[1], k[2])) for k in file_list_])
+    mfcc_matrices_for_evaluation_set = {k[0]: get_mfcc(k[1], k[2]) for k in file_list_}
+    ret = [(k, ) + classificate_mfcc_to_GMM_model(v, gmm_models_) for k, v in mfcc_matrices_for_evaluation_set.items()]
+    write_to_csv(ret, 'results.csv', delimiter=',', option='w')
+
+score_evaluate_waves()
+evaluate()
+
 TEST = False  # set to True if you want to test it
 CROSS_VALIDATE = False
-PLOTTING = True
+PLOTTING = False
 ELSE = False
+
 
 if CROSS_VALIDATE or TEST:
     """
@@ -64,16 +82,8 @@ if CROSS_VALIDATE or TEST:
     gmm_models = get_gmm_models(labels_dict, 20, 200)
 
 
-if TEST:
-    mfcc_, gmm_ = get_test_data(1000)
-    labels_dict['test'] = mfcc_
-    gmm_models['test'] = gmm_
-    print(gmm_.means_)
-    which_test = 2  # number from 0 to 2
-    show_model_and_data(labels_dict, gmm_models, 'test', which_test, [which_test*50-2, which_test*50+2])
-
 if CROSS_VALIDATE:
-    test_matrix = cross_validation(8, 40)
+    test_matrix = cross_validation(8, 40, n_of_tests_ex=2)
     print(test_matrix)
     print("Recognition Ratio: ", calc_recogn_ratio(test_matrix))
 
@@ -101,28 +111,3 @@ if ELSE:
 
 
 
-
-
-
-
-
-
-
-# CROSS VALIDATION (liczba_testow)
-"""
-1. Funkcja zwracajaca liste indeksow testowych i treningowych, jako lista tupli par list
-{
-2. Funkcja przyjmujaca jedna pare trening/test do crosswalidacji
-    a)f labels_dict dla modelu treningowego -> gmm_models
-    b)testowy_zbior = wyciagnac z get_params testowych mowcow
-    c)conf_matrix = inicjalizacja pustej confusion matrix
-    d)Iteracja po mowcy z testowy_zbior
-        d1) iteracja po cyfrach(labelach)
-            - inicjalizacja pustej tablicy prawdopodobienstwa classif_prop = []
-            d2) iteracja po modelach
-                - obliczenie prawdopodbienstwa classyfikacji prop
-                - classif_prop.append(prop)
-            e) max_idx = znajdz index maksymalnej wartości z clasif_prop
-            f) conf_matrix[label_idx, max_idx] += 1
-}     
-"""

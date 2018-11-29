@@ -4,11 +4,11 @@ import os.path
 import itertools
 
 
-def read_files():
-    matrix_of_names = os.listdir('waves')
+def read_files(path_='waves'):
+    matrix_of_names = os.listdir(path_)
     matrix_of_param = []
     for el in matrix_of_names:
-        freq, data = wavfile.read('waves/%s' % el)
+        freq, data = wavfile.read(path_ + '/%s' % el)
         matrix_of_param.append((el, data, freq))
     return matrix_of_param
 
