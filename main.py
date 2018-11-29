@@ -45,7 +45,6 @@ def score_evaluate_waves():
 
     # EVALUATION SET
     file_list_ = sorted(read_files('eval'), key=lambda x: x[0])
-    # file_list_ = dict([(k[0], (k[1], k[2])) for k in file_list_])
     mfcc_matrices_for_evaluation_set = {k[0]: get_mfcc(k[1], k[2]) for k in file_list_}
     ret = [(k, ) + classificate_mfcc_to_GMM_model(v, gmm_models_) for k, v in mfcc_matrices_for_evaluation_set.items()]
     write_to_csv(ret, 'results.csv', delimiter=',', option='w')
