@@ -84,7 +84,6 @@ def divide_test(params_dict, n_of_tests_ex=2):
         test_keys = rt
         train_keys = [list(set(key_list) - set(x)) for x in test_keys]
 
-    print(test_keys)
     return train_keys, test_keys
 
 
@@ -125,7 +124,3 @@ def write_to_csv(data, file, delimiter=' ', option='w'):
             else:
                 for el in data:
                     writer.writerow(el)
-
-    # ones_ = [x for x in params_dictionary.values()]
-    # labels_ = set(y[1] for x in params_dictionary.values() for y in x)
-    # return {k: np.concatenate((np.array([x[0] for x in chain(*ones_) if x[1] == k])),0) for k in labels_}
