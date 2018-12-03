@@ -1,27 +1,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sklearn.mixture as skm
-from Stachu import classificate_mfcc_to_GMM_model, calc_recogn_ratio
 
 
-def validate(training_set, test_set, n_components, n_iter):
+def validate(training_set, test_set, n_components, n_iter, cov_type):
+    from Stachu import classificate_mfcc_to_GMM_model
     words_count = 10
     confusion_matrix = np.zeros((words_count, words_count))
     labels_dict = get_labels_dictionary(training_set)
-    gmm_models = get_gmm_models(labels_dict,  n_components, n_iter)
+    gmm_models = get_gmm_models(labels_dict,  n_components, n_iter, cov_type)
     for speaker_id, speaker_data in test_set.items():
         for label_data in speaker_data:
             curr_mfcc = label_data[0]
             curr_label = label_data[1]
             classif_idx = classificate_mfcc_to_GMM_model(curr_mfcc, gmm_models)
-            confusion_matrix[classif_idx, int(curr_label)] += 1
+            confusion_matrix[classif_idx[0], int(curr_label)] += 1
     return confusion_matrix
 
 
-def get_gmm_models(labels_dictionary, n, n_iter):
+def get_gmm_models(labels_dictionary, n, n_iter, cov_type):
     gmm_models = {}
     for curr_label in labels_dictionary:
-        gmm_obj = skm.GaussianMixture(n_components=n, covariance_type='diag', init_params='random', max_iter=n_iter, n_init=20, tol=0.001, warm_start=True, random_state=4)
+        gmm_obj = skm.GaussianMixture(n_components=n, covariance_type=cov_type, init_params='random', max_iter=n_iter, n_init=5, tol=0.001, warm_start=True, random_state=4)
         gmm_obj.fit(labels_dictionary[curr_label])
         gmm_models[curr_label] = gmm_obj
     return gmm_models
