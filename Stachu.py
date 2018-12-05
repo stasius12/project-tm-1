@@ -7,7 +7,7 @@ from itertools import product, count, combinations
 from Kuba import validate, get_gmm_models, get_labels_dictionary
 from Mati import read_files
 import csv
-from itertools import zip_longest
+
 
 def score_evaluate_waves():
     # GMM MODELS
@@ -19,34 +19,21 @@ def score_evaluate_waves():
     ret = [(k, ) + classificate_mfcc_to_GMM_model(v, gmm_models_) for k, v in mfcc_matrices_for_evaluation_set.items()]
     write_to_csv(ret, 'results.csv', delimiter=',', option='w')
 
+
 def cross_validation(params_dict, n_components=8, n_iters=50, cov_type ='diag', n_of_tests_ex=2):
     train_keys, test_keys = divide_test(params_dict, n_of_tests_ex=n_of_tests_ex)
     sum_matrix = np.zeros((10, 10))
     for i in range(len(test_keys)):
         train_set_params = dict((k, params_dict[k]) for k in train_keys[i])
         test_set_params = dict((k, params_dict[k]) for k in test_keys[i])
-        #print(train_set_params.keys())
-        #print(test_set_params.keys())
+        # print(train_set_params.keys())
+        # print(test_set_params.keys())
         conf_matrix = validate(train_set_params, test_set_params, n_components, n_iters, cov_type)
-        #print(conf_matrix)
-        #print("Recognition Ratio for test %s: " % i, calc_recogn_ratio(conf_matrix))
+        # print(conf_matrix)
+        # print("Recognition Ratio for test %s: " % i, calc_recogn_ratio(conf_matrix))
         sum_matrix = np.add(sum_matrix, conf_matrix)
     return sum_matrix
 
-
-def test_optimal_number_of_components():
-    ratios = []
-    diagonals = []
-    for i in range(1,5, 200):
-        print("\n ===== %s components =====" % i)
-        test_matrix = cross_validation(i, 100)
-        print(test_matrix)
-        rr = "%.2f" % calc_recogn_ratio(test_matrix)
-        print("Recognition Ratio: ", rr)
-        ratios.append(rr)
-        diagonals.append(list(np.diag(test_matrix)))
-    write_to_csv(list(zip_longest(range(1, 21), ratios)), 'test_n_components.csv')
-    write_to_csv(diagonals, 'test_n_components.csv')
 
 def get_params(data, winlen = 0.025, numcep = 13, nfilt = 26, nfft = 512, appendEnergy=True, delta_=True, deltadelta_=True):
     ret = defaultdict(lambda: [])
@@ -59,6 +46,7 @@ def get_params(data, winlen = 0.025, numcep = 13, nfilt = 26, nfft = 512, append
         mfcc_ = get_mfcc(dat, sample_rate, winlen, numcep, nfilt, nfft, appendEnergy, delta_, deltadelta_ )
         ret[filename].append((mfcc_, number))
     return ret
+
 
 def get_mfcc(data, samplerate, winlen, numcep, nfilt, nfft, appendEnergy, delta_, deltadelta_):
     mfcc_ = mfcc(data, winlen=winlen, numcep=numcep, nfilt=nfilt, nfft=nfft, samplerate=samplerate, appendEnergy=appendEnergy)
@@ -166,16 +154,3 @@ def write_to_csv(data, file, delimiter=' ', option='w'):
             else:
                 for el in data:
                     writer.writerow(el)
-
-# if ELSE:
-#     data = []
-#     with open('test_n_components.csv', 'r') as csvf:
-#         reader = csv.reader(csvf, delimiter=' ', quotechar='|')
-#         for row in reader:
-#             data.append(row)
-#     data = np.array(data[21:])
-#     print(data[:, 5])
-#     plt.plot(range(1, 21), [float(i) for i in data[:, 9]])
-#     plt.xticks(range(1, 21))
-#     plt.grid()
-#     plt.show()
