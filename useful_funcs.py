@@ -51,7 +51,8 @@ def load_results(filename):
     with open(filename, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
-            results_dict[row[0]] = int(row[1])
+            if not row == []:
+                results_dict[row[0]] = int(row[1])
     return results_dict
 
 
