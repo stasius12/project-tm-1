@@ -14,7 +14,7 @@ AGH November 2017
 import matplotlib.pyplot as plt
 
 
-def evaluate(results_fname="results.csv"):
+def evaluate(results_fname="results.csv", only_mat=True):
     """
     Main function that evaluates predictions stored in the CSV file. Function computes classification accuracy
     and plots confusion matrix.
@@ -22,6 +22,7 @@ def evaluate(results_fname="results.csv"):
     :return: None
     """
     from sklearn.metrics import confusion_matrix, accuracy_score
+    import numpy as np
     prediction_dict = load_results(results_fname)
     true_dict = load_keys()
     prediction_list = []
@@ -34,6 +35,8 @@ def evaluate(results_fname="results.csv"):
     eval_ca = accuracy_score(true_list, prediction_list)
     print("Classification accuracy based on '%s': %0.2f%%" % (results_fname, 100*eval_ca))
     cm = confusion_matrix(true_list, prediction_list)
+    if only_mat:
+        return np.transpose(cm)
     plot_confusion_matrix(cm, classes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], title='Recognition ratio: %s%%' % (100*eval_ca))
 
 
